@@ -5,14 +5,12 @@ CREATE TABLE "media" (
   id uuid DEFAULT uuid_generate_v4 (),
   name VARCHAR(255),
   file_url VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE "tag" (
   id uuid DEFAULT uuid_generate_v4 (),
   name VARCHAR(255) UNIQUE NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 );
 

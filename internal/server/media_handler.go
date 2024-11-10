@@ -38,7 +38,7 @@ func (h *MediaHandler) handleCreateMedia(w http.ResponseWriter, r *http.Request)
 
 	logger.Info().Msg("Creating media...")
 
-	media, err := h.service.CreateMedia(ctx, "test", []string{})
+	media, err := h.service.CreateMedia(ctx, "test", []string{}, []byte{})
 	if err != nil {
 		logger.Error().Err(err).Msg("Could not create media")
 	}

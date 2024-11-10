@@ -24,9 +24,7 @@ func (r *PostgresTagRepository) CreateTag(ctx context.Context, name string) (*do
 	}
 
 	query := `INSERT INTO "tag" (name) VALUES ($1) RETURNING id`
-
-	err := r.db.QueryRowContext(ctx, query, name).Scan(&tag.ID)
-	if err != nil {
+	if err := r.db.QueryRowContext(ctx, query, name).Scan(&tag.ID); err != nil {
 		return nil, err
 	}
 
