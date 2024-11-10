@@ -9,11 +9,6 @@ import (
 
 var _ MediaService = (*mediaServiceImpl)(nil)
 
-type MediaService interface {
-	CreateMedia(ctx context.Context, name string, tags []string) (*domain.Media, error)
-	ListMediaByTagId(ctx context.Context, tagId string) ([]*domain.Media, error)
-}
-
 type mediaServiceImpl struct {
 	repository repository.MediaRepository
 	storage    storage.Storage

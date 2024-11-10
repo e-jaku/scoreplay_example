@@ -1,6 +1,8 @@
 package domain
 
+import "github.com/google/uuid"
+
 type Tag struct {
-	ID   int
-	Name string
+	ID   uuid.UUID `db:"id" json:"id,omitempty"`
+	Name string    `db:"name" json:"name"`
 }

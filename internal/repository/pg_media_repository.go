@@ -6,6 +6,8 @@ import (
 	"scoreplay/internal/domain"
 )
 
+var _ MediaRepository = (*PostgresMediaRepository)(nil)
+
 type PostgresMediaRepository struct {
 	db *sql.DB
 }

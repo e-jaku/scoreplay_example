@@ -1,11 +1,11 @@
 package config
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
+	"golang.org/x/xerrors"
 )
 
 var (
@@ -41,7 +41,7 @@ func LoadConfig() (*ServerConfig, *DBConfig, error) {
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
-		return nil, nil, fmt.Errorf("error reading config file: %w", err)
+		return nil, nil, xerrors.Errorf("error reading config file: %w", err)
 	}
 
 	var (
@@ -50,18 +50,18 @@ func LoadConfig() (*ServerConfig, *DBConfig, error) {
 	)
 
 	if err := v.UnmarshalKey("server", &serverConfig); err != nil {
-		return nil, nil, fmt.Errorf("unable to decode server config: %w", err)
+		return nil, nil, xerrors.Errorf("unable to decode server config: %w", err)
 	}
 	if err := v.UnmarshalKey("db", &dbConfig); err != nil {
-		return nil, nil, fmt.Errorf("unable to decode DB config: %w", err)
+		return nil, nil, xerrors.Errorf("unable to decode DB config: %w", err)
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(serverConfig); err != nil {
-		return nil, nil, fmt.Errorf("invalid server config: %v", err)
+		return nil, nil, xerrors.Errorf("invalid server config: %v", err)
 	}
 	if err := validate.Struct(dbConfig); err != nil {
-		return nil, nil, fmt.Errorf("invalid db config: %v", err)
+		return nil, nil, xerrors.Errorf("invalid db config: %v", err)
 	}
 
 	return &serverConfig, &dbConfig, nil

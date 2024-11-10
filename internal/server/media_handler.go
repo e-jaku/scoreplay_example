@@ -49,7 +49,7 @@ func (h *MediaHandler) handleListMediaByTagId(w http.ResponseWriter, r *http.Req
 	ctx := r.Context()
 	logger := h.logger.With().Str("handler", "handleListMediaByTagId").Logger()
 
-	logger.Info().Msg("Creating media...")
+	logger.Info().Msg("Listing media...")
 
 	medias, err := h.service.ListMediaByTagId(ctx, "test")
 	if err != nil {

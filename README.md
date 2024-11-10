@@ -22,3 +22,12 @@ Then simply run:
 ```
 make run
 ```
+
+
+
+### Possible improvements / Shortcuts taken
+Minio swapped with actual S3 bucket and reading/writing to S3 in production
+
+Pagination on both tags listing and media filtering. Bot since it was not required in this task it was considered out of scope
+
+Tag id == uuid, its easier to pick a form of id over all entities and stick with it (if we do not need some additional temporal connotation to it, like with increasing sequences)

@@ -1,5 +1,7 @@
 package storage
 
+var _ Storage = (*MinioStorage)(nil)
+
 type MinioStorage struct {
 	// not sure yet what will be here
 }

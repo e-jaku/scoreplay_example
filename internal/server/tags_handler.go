@@ -1,8 +1,9 @@
 package server
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
+	"scoreplay/internal/domain"
 	"scoreplay/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -35,28 +36,44 @@ func (h *TagsHandler) Router() *chi.Mux {
 func (h *TagsHandler) handleCreateTag(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := h.logger.With().Str("handler", "handleCreateTag").Logger()
-	tag, err := h.service.CreateTag(ctx, "test")
-	if err != nil {
-		logger.Error().Err(err).Msg("Could not create tag")
-		//return error json response
 
+	logger.Info().Msg("Creating tags...")
+
+	tagToCreate := &domain.Tag{}
+	err := json.NewDecoder(r.Body).Decode(&tagToCreate)
+	if err != nil {
+		sendJSON(w, &logger, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	fmt.Println("Test create tag", tag)
+	if tagToCreate.Name == "" {
+		sendJSON(w, &logger, http.StatusBadRequest, "Tag name is required")
+		return
+	}
+
+	logger.With().Str("tag", tagToCreate.Name)
+
+	tag, err := h.service.CreateTag(ctx, tagToCreate.Name)
+	if err != nil {
+		sendJSON(w, &logger, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	logger.Info().Msgf("Created tag: %v", tag.ID)
+	sendJSON(w, &logger, http.StatusCreated, tag)
 }
 
 func (h *TagsHandler) handleListTags(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := h.logger.With().Str("handler", "handleListTags").Logger()
 
+	logger.Info().Msg("Listing tags...")
+
 	tags, err := h.service.ListTags(ctx)
 	if err != nil {
-		logger.Error().Err(err).Msg("Could not list tags")
-
-		//return error json response
+		sendJSON(w, &logger, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	fmt.Println("Test list tags", tags)
+	sendJSON(w, &logger, http.StatusOK, tags)
 }
