@@ -1,0 +1,68 @@
+package config
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
+)
+
+var (
+	CONFIG_NAME = "config"
+	CONFIG_TYPE = "yaml"
+	CONFIG_PATH = "."
+)
+
+type ServerConfig struct {
+	Address         string        `mapstructure:"address" validate:"required,hostname_port"`
+	ReadTimeout     time.Duration `mapstructure:"read_timeout"`
+	WriteTimeout    time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout     time.Duration `mapstructure:"idle_timeout"`
+	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
+	RequestTimeout  time.Duration `mapstructure:"request_timeout"`
+}
+
+type DBConfig struct {
+	Host       string `mapstructure:"host" validate:"required,hostname"`
+	Port       int    `mapstructure:"port" validate:"required,numeric"`
+	User       string `mapstructure:"user" validate:"required"`
+	Password   string `mapstructure:"password" validate:"required"`
+	DBName     string `mapstructure:"dbname" validate:"required"`
+	SSLMode    string `mapstructure:"sslmode" validate:"oneof=disable require"`
+	Migrations string `mapstructure:"migrations" validate:"required"`
+}
+
+func LoadConfig() (*ServerConfig, *DBConfig, error) {
+	v := viper.New()
+	v.SetConfigName(CONFIG_NAME)
+	v.SetConfigType(CONFIG_TYPE)
+	v.AddConfigPath(CONFIG_PATH)
+	v.AutomaticEnv()
+
+	if err := v.ReadInConfig(); err != nil {
+		return nil, nil, fmt.Errorf("error reading config file: %w", err)
+	}
+
+	var (
+		serverConfig ServerConfig
+		dbConfig     DBConfig
+	)
+
+	if err := v.UnmarshalKey("server", &serverConfig); err != nil {
+		return nil, nil, fmt.Errorf("unable to decode server config: %w", err)
+	}
+	if err := v.UnmarshalKey("db", &dbConfig); err != nil {
+		return nil, nil, fmt.Errorf("unable to decode DB config: %w", err)
+	}
+
+	validate := validator.New()
+	if err := validate.Struct(serverConfig); err != nil {
+		return nil, nil, fmt.Errorf("invalid server config: %v", err)
+	}
+	if err := validate.Struct(dbConfig); err != nil {
+		return nil, nil, fmt.Errorf("invalid db config: %v", err)
+	}
+
+	return &serverConfig, &dbConfig, nil
+}

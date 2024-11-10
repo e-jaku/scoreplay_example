@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"scoreplay/internal/config"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -10,18 +11,8 @@ import (
 	"golang.org/x/xerrors"
 )
 
-type Config struct {
-	Host       string
-	Port       int
-	User       string
-	Password   string
-	DBName     string
-	SSLMode    string
-	Migrations string
-}
-
 // NewPostgresConnection initializes the DB connection to the Postgres instance.
-func NewPostgresConnection(cfg Config) (*sql.DB, error) {
+func NewPostgresConnection(cfg *config.DBConfig) (*sql.DB, error) {
 	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode,

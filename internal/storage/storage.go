@@ -1,5 +1,5 @@
 package storage
 
 type Storage interface {
-	UploadMedia([]byte) error
+	UploadMedia(media []byte) error
 }

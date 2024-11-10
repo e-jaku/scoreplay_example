@@ -11,7 +11,7 @@ CREATE TABLE "media" (
 
 CREATE TABLE "tag" (
   id uuid DEFAULT uuid_generate_v4 (),
-  name VARCHAR(255),
+  name VARCHAR(255) UNIQUE NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 );

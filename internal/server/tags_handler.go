@@ -1,4 +1,4 @@
-package handlers
+package server
 
 import (
 	"fmt"
@@ -37,7 +37,7 @@ func (h *TagsHandler) handleCreateTag(w http.ResponseWriter, r *http.Request) {
 	logger := h.logger.With().Str("handler", "handleCreateTag").Logger()
 	tag, err := h.service.CreateTag(ctx, "test")
 	if err != nil {
-		logger.Error().Err(err).Msg("could not create tag")
+		logger.Error().Err(err).Msg("Could not create tag")
 		//return error json response
 
 		return
@@ -52,7 +52,7 @@ func (h *TagsHandler) handleListTags(w http.ResponseWriter, r *http.Request) {
 
 	tags, err := h.service.ListTags(ctx)
 	if err != nil {
-		logger.Error().Err(err).Msg("could not list tags")
+		logger.Error().Err(err).Msg("Could not list tags")
 
 		//return error json response
 		return

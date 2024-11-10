@@ -15,11 +15,11 @@ type MediaService interface {
 }
 
 type mediaServiceImpl struct {
-	repository repository.TagRepository
+	repository repository.MediaRepository
 	storage    storage.Storage
 }
 
-func NewMediaService(repository repository.TagRepository, storage storage.Storage) MediaService {
+func NewMediaService(repository repository.MediaRepository, storage storage.Storage) MediaService {
 	return &mediaServiceImpl{
 		repository: repository,
 		storage:    storage,

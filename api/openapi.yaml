@@ -1,0 +1,135 @@
+openapi: 3.0.0
+info:
+  title: ScorePlay media and tags example API
+  version: 1.0.0
+  description: API definitions
+servers:
+  - url: http://localhost:8080
+    description: Local running instance
+paths:
+  /tags:
+    post:
+      summary: Create a new tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Wembley Stadium
+              required:
+                - name
+      responses:
+        '201':
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: c906cbbf-1a25-4a99-b223-34bcf6e3b8a7
+                  name:
+                    type: string
+                    example: Wembley Stadium
+
+    get:
+      summary: List all tags
+      responses:
+        '200':
+          description: A list of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: c906cbbf-1a25-4a99-b223-34bcf6e3b8a7
+                    name:
+                      type: string
+                      example: Wembley Stadium
+
+  /media:
+    post:
+      summary: Create a new media item
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: super nice picture
+                tags:
+                  type: array
+                  items:
+                    type: string
+                    example: "a807adda-1a25-4a99-b223-34bcf6e3b8a7"
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Media created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: c906cbbf-1a25-4a99-b223-34bcf6e3b8a7
+                  name:
+                    type: string
+                    example: super nice picture
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                      example: "Wembley Stadium"
+                  fileUrl:
+                    type: string
+                    example: https://some_url.com/file.jpg
+
+    get:
+      summary: Retrieve media items by tag
+      parameters:
+        - in: query
+          name: tag
+          schema:
+            type: string
+          required: true
+          description: ID of the tag to filter media by
+      responses:
+        '200':
+          description: A list of media items with the specified tag
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: c906cbbf-1a25-4a99-b223-34bcf6e3b8a7
+                    name:
+                      type: string
+                      example: super nice picture
+                    tags:
+                      type: array
+                      items:
+                        type: string
+                        example: Zinedine Zidane
+                    fileUrl:
+                      type: string
+                      example: https://some_url.com/file.jpg

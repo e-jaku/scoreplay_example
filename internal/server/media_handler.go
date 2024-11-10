@@ -1,4 +1,4 @@
-package handlers
+package server
 
 import (
 	"fmt"
@@ -15,7 +15,10 @@ type MediaHandler struct {
 }
 
 func NewMediaHandler(logger *zerolog.Logger, service service.MediaService) *MediaHandler {
-	return &MediaHandler{}
+	return &MediaHandler{
+		logger:  logger,
+		service: service,
+	}
 }
 
 func (h *MediaHandler) Router() *chi.Mux {
@@ -33,21 +36,24 @@ func (h *MediaHandler) handleCreateMedia(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	logger := h.logger.With().Str("handler", "handleCreateMedia").Logger()
 
+	logger.Info().Msg("Creating media...")
+
 	media, err := h.service.CreateMedia(ctx, "test", []string{})
 	if err != nil {
-		logger.Error().Err(err).Msg("could not create media")
+		logger.Error().Err(err).Msg("Could not create media")
 	}
 	fmt.Println("Test create media", media)
 }
 
 func (h *MediaHandler) handleListMediaByTagId(w http.ResponseWriter, r *http.Request) {
-
 	ctx := r.Context()
 	logger := h.logger.With().Str("handler", "handleListMediaByTagId").Logger()
 
+	logger.Info().Msg("Creating media...")
+
 	medias, err := h.service.ListMediaByTagId(ctx, "test")
 	if err != nil {
-		logger.Error().Err(err).Msg("could not list media by tag id")
+		logger.Error().Err(err).Msg("Could not list media by tag id")
 	}
 
 	fmt.Println("Test create media", medias)
