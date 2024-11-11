@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
+	"golang.org/x/xerrors"
 )
 
 type TagsHandler struct {
@@ -36,18 +37,17 @@ func (h *TagsHandler) Router() *chi.Mux {
 func (h *TagsHandler) handleCreateTag(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := h.logger.With().Str("handler", "handleCreateTag").Logger()
-
 	logger.Info().Msg("Creating tags...")
 
 	tagToCreate := &domain.Tag{}
 	err := json.NewDecoder(r.Body).Decode(&tagToCreate)
 	if err != nil {
-		sendJSON(w, &logger, http.StatusBadRequest, err.Error())
+		sendJSON(w, &logger, http.StatusBadRequest, xerrors.Errorf("failed to parse request body: %w", err).Error())
 		return
 	}
 
 	if tagToCreate.Name == "" {
-		sendJSON(w, &logger, http.StatusBadRequest, "Tag name is required")
+		sendJSON(w, &logger, http.StatusBadRequest, "tag name is required")
 		return
 	}
 
@@ -66,7 +66,6 @@ func (h *TagsHandler) handleCreateTag(w http.ResponseWriter, r *http.Request) {
 func (h *TagsHandler) handleListTags(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	logger := h.logger.With().Str("handler", "handleListTags").Logger()
-
 	logger.Info().Msg("Listing tags...")
 
 	tags, err := h.service.ListTags(ctx)

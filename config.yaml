@@ -14,3 +14,9 @@ db:
   dbname: "example"
   sslmode: "disable"
   migrations: "./migrations"
+
+storage:
+  bucket: example
+  access_key_id: admin
+  secret_key_id: password
+  endpoint: "localhost:9000"

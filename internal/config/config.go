@@ -33,7 +33,14 @@ type DBConfig struct {
 	Migrations string `mapstructure:"migrations" validate:"required"`
 }
 
-func LoadConfig() (*ServerConfig, *DBConfig, error) {
+type StorageConfig struct {
+	Bucket      string `mapstructure:"bucket" validate:"required"`
+	Endpoint    string `mapstructure:"endpoint" validate:"required"`
+	AccessKeyID string `mapstructure:"access_key_id" validate:"required"`
+	SecretKeyID string `mapstructure:"secret_key_id" validate:"required"`
+}
+
+func LoadConfig() (*ServerConfig, *DBConfig, *StorageConfig, error) {
 	v := viper.New()
 	v.SetConfigName(CONFIG_NAME)
 	v.SetConfigType(CONFIG_TYPE)
@@ -41,28 +48,35 @@ func LoadConfig() (*ServerConfig, *DBConfig, error) {
 	v.AutomaticEnv()
 
 	if err := v.ReadInConfig(); err != nil {
-		return nil, nil, xerrors.Errorf("error reading config file: %w", err)
+		return nil, nil, nil, xerrors.Errorf("error reading config file: %w", err)
 	}
 
 	var (
-		serverConfig ServerConfig
-		dbConfig     DBConfig
+		serverConfig  ServerConfig
+		dbConfig      DBConfig
+		storageConfig StorageConfig
 	)
 
 	if err := v.UnmarshalKey("server", &serverConfig); err != nil {
-		return nil, nil, xerrors.Errorf("unable to decode server config: %w", err)
+		return nil, nil, nil, xerrors.Errorf("unable to decode server config: %w", err)
 	}
 	if err := v.UnmarshalKey("db", &dbConfig); err != nil {
-		return nil, nil, xerrors.Errorf("unable to decode DB config: %w", err)
+		return nil, nil, nil, xerrors.Errorf("unable to decode DB config: %w", err)
+	}
+	if err := v.UnmarshalKey("storage", &storageConfig); err != nil {
+		return nil, nil, nil, xerrors.Errorf("unable to decode DB config: %w", err)
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(serverConfig); err != nil {
-		return nil, nil, xerrors.Errorf("invalid server config: %v", err)
+		return nil, nil, nil, xerrors.Errorf("invalid server config: %v", err)
 	}
 	if err := validate.Struct(dbConfig); err != nil {
-		return nil, nil, xerrors.Errorf("invalid db config: %v", err)
+		return nil, nil, nil, xerrors.Errorf("invalid db config: %v", err)
+	}
+	if err := validate.Struct(storageConfig); err != nil {
+		return nil, nil, nil, xerrors.Errorf("invalid storage config: %v", err)
 	}
 
-	return &serverConfig, &dbConfig, nil
+	return &serverConfig, &dbConfig, &storageConfig, nil
 }

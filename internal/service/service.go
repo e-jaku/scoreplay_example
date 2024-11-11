@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"io"
 	"scoreplay/internal/domain"
 )
 
 type MediaService interface {
-	CreateMedia(ctx context.Context, name string, tags []string, media []byte) (*domain.Media, error)
+	CreateMedia(ctx context.Context, name string, tags []string, file io.Reader, fileType string) (*domain.Media, error)
 	ListMediaByTagId(ctx context.Context, tagId string) ([]*domain.Media, error)
 }
 

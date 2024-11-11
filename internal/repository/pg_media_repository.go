@@ -1,9 +1,12 @@
 package repository
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"scoreplay/internal/domain"
+	"strings"
+	"unicode"
 
 	"github.com/lib/pq"
 )
@@ -61,26 +64,57 @@ func (r *PostgresMediaRepository) CreateMedia(ctx context.Context, name string, 
 
 func (r *PostgresMediaRepository) ListMediaByTagId(ctx context.Context, tagId string) ([]*domain.Media, error) {
 	query := ` SELECT m.id AS media_id, m.name AS media_name, m.file_url, ARRAY_AGG(t.name) AS tags
-	FROM media m JOIN media_tags mt ON m.id = mt.media_id
-	JOIN tags t ON mt.tag_id = t.id
-	WHERE m.id IN (	SELECT media_id FROM media_tags WHERE tag_id = $1)
-	GROUP BY m.id Limit $2;`
+	FROM media m JOIN media_tag mt ON m.id = mt.media_id
+	JOIN tag t ON mt.tag_id = t.id
+	WHERE m.id IN (	SELECT media_id FROM media_tag WHERE tag_id = $1)
+	GROUP BY m.id ORDER BY m.id ASC LIMIT $2;`
 
-	rows, err := r.db.QueryContext(ctx, query, tagId, 1000)
+	rows, err := r.db.QueryContext(ctx, query, tagId, LIMIT)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var medias []*domain.Media
+	medias := []*domain.Media{}
 	for rows.Next() {
 		media := &domain.Media{}
-		err := rows.Scan(&media.ID, &media.Name, media.FileURL, media.Tags)
+		var tags []byte
+		err := rows.Scan(&media.ID, &media.Name, &media.FileURL, &tags)
 		if err != nil {
 			return nil, err
 		}
+
+		media.Tags = extractArray(tags)
 		medias = append(medias, media)
 	}
 
 	return medias, nil
+}
+
+func extractArray(data []byte) []string {
+	str := strings.Trim(string(data), "{}")
+	if str == "" {
+		return []string{}
+	}
+
+	var result []string
+	var buf bytes.Buffer
+	inQuotes := false
+	for _, r := range str {
+		switch {
+		case r == ',' && !inQuotes:
+			result = append(result, buf.String())
+			buf.Reset()
+		case r == '"':
+			inQuotes = !inQuotes
+		default:
+			if unicode.IsSpace(r) && !inQuotes {
+				continue
+			}
+			buf.WriteRune(r)
+		}
+	}
+	result = append(result, buf.String())
+
+	return result
 }

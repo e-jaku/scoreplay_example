@@ -7,3 +7,27 @@ services:
       POSTGRES_DB: example
     ports:
       - "5432:5432"
+
+  minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+      MINIO_BUCKET: example
+    volumes:
+      - minio-data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    entrypoint: |
+      /bin/sh -c "
+      /usr/bin/minio server --console-address ":9001" /data &
+      sleep 5
+      mc alias set myminio http://localhost:9000 admin password
+      mc mb myminio/example || true
+      mc anonymous set public myminio/example || true 
+      wait
+      "
+
+volumes:
+  minio-data:

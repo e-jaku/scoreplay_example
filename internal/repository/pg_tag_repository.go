@@ -11,6 +11,8 @@ import (
 
 var _ TagRepository = (*PostgresTagRepository)(nil)
 
+const LIMIT = 1000
+
 type PostgresTagRepository struct {
 	db *sql.DB
 }
@@ -35,9 +37,9 @@ func (r *PostgresTagRepository) CreateTag(ctx context.Context, name string) (*do
 }
 
 func (r *PostgresTagRepository) ListTags(ctx context.Context) ([]*domain.Tag, error) {
-	query := `SELECT id, name FROM tag LIMIT $1`
+	query := `SELECT id, name FROM tag ORDER BY id ASC LIMIT $1`
 
-	rows, err := r.db.QueryContext(ctx, query, 1000)
+	rows, err := r.db.QueryContext(ctx, query, LIMIT)
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +59,9 @@ func (r *PostgresTagRepository) ListTags(ctx context.Context) ([]*domain.Tag, er
 }
 
 func (r *PostgresTagRepository) GetTags(ctx context.Context, tagIds []string) ([]*domain.Tag, error) {
-	query := `SELECT id, name FROM tag WHERE id = ANY($1::uuid[])`
+	query := `SELECT id, name FROM tag WHERE id = ANY($1::uuid[]) ORDER BY id ASC LIMIT $2`
 
-	rows, err := r.db.QueryContext(ctx, query, pq.Array(tagIds))
+	rows, err := r.db.QueryContext(ctx, query, pq.Array(tagIds), LIMIT)
 	if err != nil {
 		return nil, err
 	}

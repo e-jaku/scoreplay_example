@@ -28,7 +28,7 @@ func main() {
 }
 
 func run(ctx context.Context, logger *zerolog.Logger) error {
-	serverCfg, dbCfg, err := config.LoadConfig()
+	serverCfg, dbCfg, storageCfg, err := config.LoadConfig()
 	if err != nil {
 		logger.Fatal().Err(err).Msg("Failed to load config")
 	}
@@ -39,23 +39,21 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	}
 	defer dbConn.Close()
 
-	var (
-		done = make(chan struct{})
-		quit = make(chan os.Signal, 1)
+	done := make(chan struct{})
+	quit := make(chan os.Signal, 1)
 
-		mediaRepo = repository.NewPostgresMediaRepository(dbConn)
-		tagRepo   = repository.NewPostgresTagRepository(dbConn)
+	mediaRepo := repository.NewPostgresMediaRepository(dbConn)
+	tagRepo := repository.NewPostgresTagRepository(dbConn)
 
-		storage = storage.NewMinioStorage()
+	storage, err := storage.NewMinioStorage(storageCfg)
 
-		mediaService = service.NewMediaService(mediaRepo, tagRepo, storage)
-		tagService   = service.NewTagService(tagRepo)
+	mediaService := service.NewMediaService(mediaRepo, tagRepo, storage)
+	tagService := service.NewTagService(tagRepo)
 
-		svr = server.NewServer(serverCfg, func(m chi.Router) {
-			m.Mount("/media", server.NewMediaHandler(logger, mediaService).Router())
-			m.Mount("/tags", server.NewTagsHandler(logger, tagService).Router())
-		})
-	)
+	svr := server.NewServer(serverCfg, func(m chi.Router) {
+		m.Mount("/media", server.NewMediaHandler(logger, mediaService).Router())
+		m.Mount("/tags", server.NewTagsHandler(logger, tagService).Router())
+	})
 
 	signal.Notify(quit, os.Interrupt)
 
