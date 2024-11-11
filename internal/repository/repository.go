@@ -8,6 +8,7 @@ import (
 type TagRepository interface {
 	CreateTag(ctx context.Context, name string) (*domain.Tag, error)
 	ListTags(ctx context.Context) ([]*domain.Tag, error)
+	GetTags(ctx context.Context, tagIds []string) ([]*domain.Tag, error)
 }
 
 type MediaRepository interface {

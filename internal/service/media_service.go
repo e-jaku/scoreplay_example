@@ -12,14 +12,16 @@ import (
 var _ MediaService = (*mediaServiceImpl)(nil)
 
 type mediaServiceImpl struct {
-	repository repository.MediaRepository
-	storage    storage.Storage
+	mediaRepository repository.MediaRepository
+	tagRepository   repository.TagRepository
+	storage         storage.Storage
 }
 
-func NewMediaService(repository repository.MediaRepository, storage storage.Storage) MediaService {
+func NewMediaService(mediaRepository repository.MediaRepository, tagRepository repository.TagRepository, storage storage.Storage) MediaService {
 	return &mediaServiceImpl{
-		repository: repository,
-		storage:    storage,
+		mediaRepository: mediaRepository,
+		tagRepository:   tagRepository,
+		storage:         storage,
 	}
 }
 
@@ -34,13 +36,13 @@ func (s *mediaServiceImpl) CreateMedia(ctx context.Context, name string, tags []
 
 	// store in create media
 
-	s.repository.CreateMedia(ctx, name, tags, "tbd")
+	s.mediaRepository.CreateMedia(ctx, name, tags, "tbd")
 
 	return &domain.Media{}, nil
 }
 
 func (s *mediaServiceImpl) ListMediaByTagId(ctx context.Context, tagId string) ([]*domain.Media, error) {
-	media, err := s.repository.ListMediaByTagId(ctx, tagId)
+	media, err := s.mediaRepository.ListMediaByTagId(ctx, tagId)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to list media by tag id")
 	}

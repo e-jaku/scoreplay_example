@@ -48,7 +48,7 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 
 		storage = storage.NewMinioStorage()
 
-		mediaService = service.NewMediaService(mediaRepo, storage)
+		mediaService = service.NewMediaService(mediaRepo, tagRepo, storage)
 		tagService   = service.NewTagService(tagRepo)
 
 		svr = server.NewServer(serverCfg, func(m chi.Router) {

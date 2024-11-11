@@ -47,17 +47,12 @@ func (r *PostgresMediaRepository) CreateMedia(ctx context.Context, name string, 
 		return nil, err
 	}
 
-	tagInterface := make([]interface{}, len(tags))
-	for i, tagID := range tags {
-		tagInterface[i] = tagID
-	}
-
 	insertMediaTagsQuery := `
         INSERT INTO media_tag (media_id, tag_id)
         SELECT $1, unnest($2::uuid[])
         ON CONFLICT DO NOTHING
     `
-	if _, err := tx.ExecContext(ctx, insertMediaTagsQuery, media.ID, pq.Array(tagInterface)); err != nil {
+	if _, err := tx.ExecContext(ctx, insertMediaTagsQuery, media.ID, pq.Array(tags)); err != nil {
 		return nil, err
 	}
 
