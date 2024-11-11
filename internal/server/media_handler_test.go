@@ -4,12 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"scoreplay/internal/domain"
+	"scoreplay/internal/service"
 	"testing"
 
 	"github.com/google/uuid"
@@ -17,28 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/xerrors"
 )
-
-type mockedMediaService struct {
-	err error
-}
-
-func (s *mockedMediaService) CreateMedia(ctx context.Context, name string, tags []string, file io.Reader, fileType string) (*domain.Media, error) {
-	if s.err != nil {
-		return nil, s.err
-	}
-	return &domain.Media{
-		ID:      uuid.New(),
-		Name:    name,
-		FileURL: fileType, // for simplicity
-	}, nil
-}
-
-func (s *mockedMediaService) ListMediaByTagId(ctx context.Context, tagId string) ([]*domain.Media, error) {
-	if s.err != nil {
-		return nil, s.err
-	}
-	return []*domain.Media{}, nil
-}
 
 func TestHandleCreateMedia(t *testing.T) {
 	ctx := context.Background()
@@ -52,7 +29,7 @@ func TestHandleCreateMedia(t *testing.T) {
 		fileType           string
 		tags               string
 		expectedStatusCode int
-		mockService        *mockedMediaService
+		mockService        *service.MockedMediaService
 	}{
 		{
 			name:               "Valid test-case",
@@ -61,7 +38,7 @@ func TestHandleCreateMedia(t *testing.T) {
 			tags:               "tag1",
 			fileType:           "png",
 			expectedStatusCode: http.StatusCreated,
-			mockService:        &mockedMediaService{},
+			mockService:        &service.MockedMediaService{},
 		},
 		{
 			name:               "Missing tags",
@@ -69,7 +46,7 @@ func TestHandleCreateMedia(t *testing.T) {
 			mediaName:          "Super nice picture",
 			fileType:           "png",
 			expectedStatusCode: http.StatusBadRequest,
-			mockService:        &mockedMediaService{},
+			mockService:        &service.MockedMediaService{},
 		},
 		{
 			name:               "Missing media name",
@@ -77,7 +54,7 @@ func TestHandleCreateMedia(t *testing.T) {
 			tags:               "tag1",
 			fileType:           "png",
 			expectedStatusCode: http.StatusBadRequest,
-			mockService:        &mockedMediaService{},
+			mockService:        &service.MockedMediaService{},
 		},
 		{
 			name:               "Wrong media type(not jpeg or png)",
@@ -85,7 +62,7 @@ func TestHandleCreateMedia(t *testing.T) {
 			tags:               "tag1",
 			fileType:           "png",
 			expectedStatusCode: http.StatusUnsupportedMediaType,
-			mockService:        &mockedMediaService{err: simulatedServiceError},
+			mockService:        &service.MockedMediaService{},
 		},
 		{
 			name:               "Error in service",
@@ -94,7 +71,7 @@ func TestHandleCreateMedia(t *testing.T) {
 			tags:               "tag1",
 			fileType:           "png",
 			expectedStatusCode: http.StatusInternalServerError,
-			mockService:        &mockedMediaService{err: simulatedServiceError},
+			mockService:        &service.MockedMediaService{Err: simulatedServiceError},
 		},
 	}
 
@@ -148,24 +125,24 @@ func TestHandleListMediaByTagId(t *testing.T) {
 		name               string
 		tagId              string
 		expectedStatusCode int
-		mockService        *mockedMediaService
+		mockService        *service.MockedMediaService
 	}{
 		{
 			name:               "Valid test-case",
 			tagId:              uuid.NewString(),
 			expectedStatusCode: http.StatusOK,
-			mockService:        &mockedMediaService{},
+			mockService:        &service.MockedMediaService{},
 		},
 		{
 			name:               "Missing tag id",
 			expectedStatusCode: http.StatusBadRequest,
-			mockService:        &mockedMediaService{},
+			mockService:        &service.MockedMediaService{},
 		},
 		{
 			name:               "Service throws an error",
 			tagId:              uuid.NewString(),
 			expectedStatusCode: http.StatusInternalServerError,
-			mockService:        &mockedMediaService{err: simulatedServiceError},
+			mockService:        &service.MockedMediaService{Err: simulatedServiceError},
 		},
 	}
 

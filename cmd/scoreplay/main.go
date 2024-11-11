@@ -46,6 +46,9 @@ func run(ctx context.Context, logger *zerolog.Logger) error {
 	tagRepo := repository.NewPostgresTagRepository(dbConn)
 
 	storage, err := storage.NewMinioStorage(storageCfg)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to create MinIO storage")
+	}
 
 	mediaService := service.NewMediaService(mediaRepo, tagRepo, storage)
 	tagService := service.NewTagService(tagRepo)

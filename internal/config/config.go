@@ -3,79 +3,49 @@ package config
 import (
 	"time"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/spf13/viper"
+	"github.com/kelseyhightower/envconfig"
 	"golang.org/x/xerrors"
 )
 
-const (
-	CONFIG_NAME = "config"
-	CONFIG_TYPE = "yaml"
-	CONFIG_PATH = "."
-)
-
 type ServerConfig struct {
-	Address         string        `mapstructure:"address" validate:"required,hostname_port"`
-	ReadTimeout     time.Duration `mapstructure:"read_timeout"`
-	WriteTimeout    time.Duration `mapstructure:"write_timeout"`
-	IdleTimeout     time.Duration `mapstructure:"idle_timeout"`
-	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
-	RequestTimeout  time.Duration `mapstructure:"request_timeout"`
+	Address         string        `envconfig:"SERVER_ADDRESS" default:":8080"`
+	ReadTimeout     time.Duration `envconfig:"SERVER_READ_TIMEOUT" default:"5s"`
+	WriteTimeout    time.Duration `envconfig:"SERVER_WRITE_TIMEOUT" default:"10s"`
+	IdleTimeout     time.Duration `envconfig:"SERVER_IDLE_TIMEOUT" default:"15s"`
+	ShutdownTimeout time.Duration `envconfig:"SERVER_SHUTDOWN_TIMEOUT" default:"30s"`
+	RequestTimeout  time.Duration `envconfig:"SERVER_REQUEST_TIMEOUT" default:"45s"`
 }
 
 type DBConfig struct {
-	Host       string `mapstructure:"host" validate:"required,hostname"`
-	Port       int    `mapstructure:"port" validate:"required,numeric"`
-	User       string `mapstructure:"user" validate:"required"`
-	Password   string `mapstructure:"password" validate:"required"`
-	DBName     string `mapstructure:"dbname" validate:"required"`
-	SSLMode    string `mapstructure:"sslmode" validate:"oneof=disable require"`
-	Migrations string `mapstructure:"migrations" validate:"required"`
+	Host       string `envconfig:"DB_HOST" default:"localhost"`
+	Port       int    `envconfig:"DB_PORT" default:"5432"`
+	User       string `envconfig:"DB_USER" default:"postgres"`
+	Password   string `envconfig:"DB_PASSWORD" default:"password"`
+	DBName     string `envconfig:"DB_DBNAME" default:"example"`
+	SSLMode    string `envconfig:"DB_SSLMODE" default:"disable"`
+	Migrations string `envconfig:"DB_MIGRATIONS" default:"./migrations"`
 }
 
 type StorageConfig struct {
-	Bucket      string `mapstructure:"bucket" validate:"required"`
-	Endpoint    string `mapstructure:"endpoint" validate:"required"`
-	AccessKeyID string `mapstructure:"access_key_id" validate:"required"`
-	SecretKeyID string `mapstructure:"secret_key_id" validate:"required"`
+	Bucket      string `envconfig:"STORAGE_BUCKET" default:"example"`
+	Endpoint    string `envconfig:"STORAGE_ENDPOINT" default:"localhost:9000"`
+	AccessKeyID string `envconfig:"STORAGE_ACCESS_KEY_ID" default:"admin"`
+	SecretKeyID string `envconfig:"STORAGE_SECRET_KEY_ID" default:"password"`
 }
 
 func LoadConfig() (*ServerConfig, *DBConfig, *StorageConfig, error) {
-	v := viper.New()
-	v.SetConfigName(CONFIG_NAME)
-	v.SetConfigType(CONFIG_TYPE)
-	v.AddConfigPath(CONFIG_PATH)
-	v.AutomaticEnv()
+	var serverConfig ServerConfig
+	var dbConfig DBConfig
+	var storageConfig StorageConfig
 
-	if err := v.ReadInConfig(); err != nil {
-		return nil, nil, nil, xerrors.Errorf("error reading config file: %w", err)
+	if err := envconfig.Process("", &serverConfig); err != nil {
+		return nil, nil, nil, xerrors.Errorf("error loading server config: %w", err)
 	}
-
-	var (
-		serverConfig  ServerConfig
-		dbConfig      DBConfig
-		storageConfig StorageConfig
-	)
-
-	if err := v.UnmarshalKey("server", &serverConfig); err != nil {
-		return nil, nil, nil, xerrors.Errorf("unable to decode server config: %w", err)
+	if err := envconfig.Process("", &dbConfig); err != nil {
+		return nil, nil, nil, xerrors.Errorf("error loading DB config: %w", err)
 	}
-	if err := v.UnmarshalKey("db", &dbConfig); err != nil {
-		return nil, nil, nil, xerrors.Errorf("unable to decode DB config: %w", err)
-	}
-	if err := v.UnmarshalKey("storage", &storageConfig); err != nil {
-		return nil, nil, nil, xerrors.Errorf("unable to decode DB config: %w", err)
-	}
-
-	validate := validator.New()
-	if err := validate.Struct(serverConfig); err != nil {
-		return nil, nil, nil, xerrors.Errorf("invalid server config: %v", err)
-	}
-	if err := validate.Struct(dbConfig); err != nil {
-		return nil, nil, nil, xerrors.Errorf("invalid db config: %v", err)
-	}
-	if err := validate.Struct(storageConfig); err != nil {
-		return nil, nil, nil, xerrors.Errorf("invalid storage config: %v", err)
+	if err := envconfig.Process("", &storageConfig); err != nil {
+		return nil, nil, nil, xerrors.Errorf("error loading storage config: %w", err)
 	}
 
 	return &serverConfig, &dbConfig, &storageConfig, nil
