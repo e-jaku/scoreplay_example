@@ -37,3 +37,5 @@ File size uploaded was limited to 10MB
 File MIME type was limited to jpeg and png
 
 File names are dropped in favor of uuid, so that it does not lead to any name clashes during upload
+
+File compression was skipped (could be important for cost saving on large volumes of data)

@@ -1,12 +1,17 @@
 PKG := ./...
+COVERAGE_FILE := coverage.out
 
-.PHONY: all test build run stop clean
+.PHONY: all test test-coverage build run stop clean
 
 all: docker-up
 
 test:
 	@echo "Running tests..."
 	go test $(PKG)
+
+test-coverage:
+	@echo "Running tests with coverage..."
+	go test -coverprofile=$(COVERAGE_FILE) $(PKG)	
 
 build:
 	@echo "Running build..."

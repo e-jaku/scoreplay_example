@@ -8,7 +8,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-var (
+const (
 	CONFIG_NAME = "config"
 	CONFIG_TYPE = "yaml"
 	CONFIG_PATH = "."
