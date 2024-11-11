@@ -47,6 +47,23 @@ func (h *MediaHandler) handleCreateMedia(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	name := r.FormValue("name")
+	if name == "" {
+		sendJSON(w, &logger, http.StatusBadRequest, "missing media name")
+		return
+	}
+
+	tagsField := r.FormValue("tags")
+	if tagsField == "" {
+		sendJSON(w, &logger, http.StatusBadRequest, "missing tags for media")
+		return
+	}
+
+	var tags []string
+	if tagsField != "" {
+		tags = strings.Split(tagsField, ",")
+	}
+
 	file, _, err := r.FormFile("file")
 	if err != nil {
 		sendJSON(w, &logger, http.StatusBadRequest, xerrors.Errorf("failed to read file: %w", err).Error())
@@ -62,7 +79,6 @@ func (h *MediaHandler) handleCreateMedia(w http.ResponseWriter, r *http.Request)
 
 	fileType := ""
 	mimeType := http.DetectContentType(buffer)
-
 	if mimeType == "image/jpeg" {
 		fileType = ".jpg"
 	} else if mimeType == "image/png" {
@@ -75,18 +91,6 @@ func (h *MediaHandler) handleCreateMedia(w http.ResponseWriter, r *http.Request)
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		sendJSON(w, &logger, http.StatusInternalServerError, xerrors.Errorf("failed to reset file pointer: %w", err).Error())
 		return
-	}
-
-	name := r.FormValue("name")
-	tagsField := r.FormValue("tags")
-	if tagsField == "" {
-		sendJSON(w, &logger, http.StatusInternalServerError, "missing tags for media")
-		return
-	}
-
-	var tags []string
-	if tagsField != "" {
-		tags = strings.Split(tagsField, ",")
 	}
 
 	media, err := h.service.CreateMedia(ctx, name, tags, file, fileType)

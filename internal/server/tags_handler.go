@@ -55,7 +55,7 @@ func (h *TagsHandler) handleCreateTag(w http.ResponseWriter, r *http.Request) {
 
 	tag, err := h.service.CreateTag(ctx, tagToCreate.Name)
 	if err != nil {
-		sendJSON(w, &logger, http.StatusBadRequest, err.Error())
+		sendJSON(w, &logger, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -70,9 +70,10 @@ func (h *TagsHandler) handleListTags(w http.ResponseWriter, r *http.Request) {
 
 	tags, err := h.service.ListTags(ctx)
 	if err != nil {
-		sendJSON(w, &logger, http.StatusBadRequest, err.Error())
+		sendJSON(w, &logger, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	logger.Info().Msgf("Found %d tags", len(tags))
 	sendJSON(w, &logger, http.StatusOK, tags)
 }
