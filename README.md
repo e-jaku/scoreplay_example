@@ -71,9 +71,8 @@ curl -X 'GET' \
 this will return you a list of the created tags.
 
 Now on to the more complex ones, to create a new media you need a picture first (either png or jpeg, enforced on the backend).
-Some samples can be found in the [samples folder](samples/) lets assume the tennis image should be uploaded:
+Some samples can be found in the [samples folder](samples/) lets assume the tennis image should be uploaded, navigate to the `samples` folder and run:
 ```
-cd samples && \
 curl -X 'POST' \
   'http://localhost:8080/media' \
   -H 'accept: application/json' \
