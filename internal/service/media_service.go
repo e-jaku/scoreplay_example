@@ -35,12 +35,12 @@ func (s *mediaServiceImpl) CreateMedia(ctx context.Context, name string, tags []
 
 	fileURL, err := s.storage.UploadMedia(ctx, file, fileType)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to upload media to storage")
+		return nil, xerrors.Errorf("failed to upload media to storage: %w", err)
 	}
 
 	createdMedia, err := s.mediaRepository.CreateMedia(ctx, name, tags, fileURL)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to store media metadata")
+		return nil, xerrors.Errorf("failed to store media metadata: %w", err)
 	}
 
 	var tagNames []string
